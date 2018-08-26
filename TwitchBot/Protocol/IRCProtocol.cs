@@ -9,6 +9,8 @@ namespace TwitchBot.Protocol
 {
     class IRCProtocol
     {
+        private const string defUserName = "SNAGULELELE";
+
         private static CommandLineArg serverToConnect;
         private static CommandLineArg portToConnect;
         private static CommandLineArg channelToJoin;
@@ -32,7 +34,7 @@ namespace TwitchBot.Protocol
             portToConnect = new CommandLineArg("-p", "--port", "Port to connect to", 1);
             channelToJoin = new CommandLineArg("-c", "--channel", "Channel to join", 1);
             clientName = new CommandLineArg("-n", "--name", "Client Name", 1);
-
+            OAuthToken = new CommandLineArg("-o", "--oauth", "OAuth token getting used to connect", 1);
         }
 
         public void Run()
@@ -62,13 +64,14 @@ namespace TwitchBot.Protocol
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("ME6-CONNECT DONE");
             Console.ForegroundColor = prevCol;
-            sock.Send(System.Text.Encoding.Default.GetBytes($"NICK {(clientName.IsParsed() ? clientName.GetAdditionalArg(0) : "SNAGULELELE")}\r\n"));
-            sock.Send(System.Text.Encoding.Default.GetBytes($"USER {(clientName.IsParsed() ? clientName.GetAdditionalArg(0) : "SNAGULELELE")} * *: fred von borg\r\n"));
+            if (OAuthToken.IsParsed())
+                sock.Send(Encoding.UTF8.GetBytes($"PASS oauth:{OAuthToken.GetAdditionalArg(0)}"));
+            sock.Send(System.Text.Encoding.Default.GetBytes($"NICK {(clientName.IsParsed() ? clientName.GetAdditionalArg(0) : defUserName)}\r\n"));
+            sock.Send(System.Text.Encoding.Default.GetBytes($"USER {(clientName.IsParsed() ? clientName.GetAdditionalArg(0) : defUserName)} * *: fred von borg\r\n"));
         }
 
         protected virtual void OnReceivedData(string data)
         {
-
             var prevCol = Console.ForegroundColor;
             foreach (var command in IRC.Parser.Parse(data))
             {
@@ -101,7 +104,7 @@ namespace TwitchBot.Protocol
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine($"PRMSG: {command.GetSender()} ({string.Join(',',command.GetParameters())}): {command.GetAdditionalInfo()}");
                         if(!command.GetParameters().Contains(command.GetSender()))
-                            sock.Send(Encoding.UTF8.GetBytes($"PRIVMSG {string.Join(',', command.GetParameters())} :{command.GetAdditionalInfo()}\r\n"));
+                            sock.Send(Encoding.UTF8.GetBytes($"PRIVMSG {(command.GetParameters().Contains((clientName.IsParsed() ? clientName.GetAdditionalArg(0) : defUserName )) ? command.GetSender() : string.Join(',', command.GetParameters()) )} :{command.GetAdditionalInfo()}\r\n"));
                         break;
                     case IRC.Commands.MOTD:
                         Console.ForegroundColor = ConsoleColor.Gray;

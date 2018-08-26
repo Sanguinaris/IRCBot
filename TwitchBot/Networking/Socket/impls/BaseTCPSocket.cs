@@ -37,7 +37,7 @@ namespace TwitchBot.Networking.Socket.impls
         private void OnReceivedData(byte[] data)
         {
             ActionDone(RegisterCallbackType.ReceivedData, data);
-            data = new byte[10000];
+            Array.Clear(data, 0, 10000);
             client.GetStream().BeginRead(data, 0, 10000, (asyncResult) =>
             {
                 BaseTCPSocket baseSock = (BaseTCPSocket)asyncResult.AsyncState;
