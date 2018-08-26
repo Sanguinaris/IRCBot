@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TwitchBot.Scripts
 {
-    class IScript
+    interface IScript
     {
     }
 }

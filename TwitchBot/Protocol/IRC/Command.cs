@@ -8,7 +8,11 @@ namespace TwitchBot.Protocol.IRC
         UNKWN,
         Reply,
         Error,
+
         PRIVMSG,
+        MOTD,
+        MODE,
+
         PING,
         NOTICE,
     }
